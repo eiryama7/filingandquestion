@@ -2,6 +2,8 @@
 
 このプロジェクトは、Apple の Foundation Models フレームワークを使用したシンプルなチャットボットアプリケーションのサンプル実装です。
 
+> 📚 **ドキュメント**: [セットアップガイド](SETUP.md) | [クイックリファレンス](QUICKREF.md)
+
 ## 概要
 
 Apple Intelligence の Foundation Models（オンデバイス LLM）を使用して、デバイス上で動作する AI チャットアシスタントを実装しています。ユーザーがテキストを入力すると、Apple の言語モデルが応答を生成し、会話履歴として画面に表示されます。
@@ -15,6 +17,23 @@ Apple Intelligence の Foundation Models（オンデバイス LLM）を使用し
 - ✅ リアルタイムローディングインジケータ
 - ✅ エラーハンドリングと利用可否チェック
 - ✅ 会話履歴のクリア機能
+
+## クイックスタート
+
+```bash
+# 1. リポジトリをクローン
+git clone https://github.com/eiryama7/filingandquestion.git
+cd filingandquestion
+
+# 2. Xcode でプロジェクトを開く
+open filingandquestion.xcodeproj
+
+# 3. 対応デバイス（iPhone 15 Pro 以降）を接続してビルド
+```
+
+> ⚠️ **重要**: Apple Intelligence は iPhone 15 Pro 以降の実機でのみ動作します。シミュレータでは利用できません。
+
+詳細な手順は [セットアップガイド（SETUP.md）](SETUP.md) をご覧ください。
 
 ## 必要な環境
 
@@ -186,9 +205,15 @@ Apple Intelligence は実機専用の機能です。対応デバイスで実行�
 - **アーキテクチャ**: MVVM (Model-View-ViewModel)
 - **非同期処理**: Swift Concurrency (async/await)
 
+## ドキュメント
+
+- 📘 [README（このファイル）](README.md) - プロジェクト概要と基本情報
+- 📗 [セットアップガイド（SETUP.md）](SETUP.md) - 詳細なセットアップ手順とトラブルシューティング
+- 📙 [クイックリファレンス（QUICKREF.md）](QUICKREF.md) - コードスニペットとカスタマイズ方法
+
 ## ライセンス
 
-このプロジェクトはサンプル実装です。自由に使用・改変していただけます。
+このプロジェクトは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) をご覧ください。
 
 ## 注意事項
 
@@ -210,3 +235,7 @@ Apple Intelligence は実機専用の機能です。対応デバイスで実行�
 - [Apple Intelligence Documentation](https://developer.apple.com/apple-intelligence/)
 - [Foundation Models Framework](https://developer.apple.com/documentation/foundationmodels)
 - [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui/)
+
+---
+
+**開発者**: このプロジェクトはサンプル実装として提供されています。自由に使用・改変・配布していただけます。
