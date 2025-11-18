@@ -3,22 +3,42 @@
 //  filingandquestion
 //
 //  Apple Foundation Models フレームワークを使ったチャットサービス
+//  このクラスは Apple Intelligence のオンデバイス LLM との通信を管理します
 //
 
 import Foundation
 import FoundationModels
 
 /// LLMとの通信を管理するサービスクラス
+/// 
+/// このクラスの主な役割:
+/// - SystemLanguageModel の利用可能性チェック
+/// - LanguageModelSession の初期化と管理
+/// - ユーザーメッセージの送信と応答の受信
+/// - 会話履歴の維持（セッション内で自動管理）
+///
+/// @MainActor を使用してメインスレッドで実行することで、
+/// UI更新との同期を確保しています
 @MainActor
 class LLMChatService: ObservableObject {
+    /// Foundation Models のセッション
+    /// このセッションは会話履歴を内部で保持し、マルチターン対話を可能にします
     private var session: LanguageModelSession?
     
     /// モデルの利用可能性を確認
+    /// 
+    /// Apple Intelligence が使用可能かどうかをチェックします:
+    /// - デバイスがサポートしているか (SystemLanguageModel.isSupported)
+    /// - モデルが利用可能な状態か (availability)
+    ///
+    /// - Returns: モデルが利用可能な場合は true、それ以外は false
     func checkAvailability() -> Bool {
+        // まず、デバイスが Foundation Models をサポートしているかチェック
         guard SystemLanguageModel.isSupported else {
             return false
         }
         
+        // デフォルトモデルの利用可能性を確認
         let availability = SystemLanguageModel.default.availability
         switch availability {
         case .available:
@@ -31,19 +51,34 @@ class LLMChatService: ObservableObject {
     }
     
     /// セッションを初期化
+    ///
+    /// SystemLanguageModel.default から新しいセッションを作成します。
+    /// セッションは会話の文脈を保持するために使用されます。
+    ///
+    /// - Throws: モデルが利用できない場合、LLMError.modelUnavailable をスロー
     func initializeSession() throws {
         guard checkAvailability() else {
             throw LLMError.modelUnavailable
         }
         
+        // デフォルトのシステム言語モデルを取得
         let model = SystemLanguageModel.default
+        // セッションを作成（会話履歴を管理するため）
         session = try model.makeSession()
     }
     
     /// ユーザーメッセージに対する応答を取得
+    ///
+    /// このメソッドが Apple の LLM とのメインインターフェースです:
+    /// 1. セッションが初期化されていなければ初期化
+    /// 2. session.respond(to:) を呼び出してモデルからの応答を取得
+    /// 3. セッションは会話履歴を自動的に管理するため、文脈を理解した応答が得られます
+    ///
     /// - Parameter userMessage: ユーザーからのメッセージテキスト
     /// - Returns: モデルからの応答テキスト
+    /// - Throws: セッションエラーまたは応答エラー
     func sendMessage(_ userMessage: String) async throws -> String {
+        // セッションが存在しない場合は初期化
         guard let session = session else {
             try initializeSession()
             guard let session = session else {
@@ -52,7 +87,9 @@ class LLMChatService: ObservableObject {
         }
         
         do {
-            // ユーザーメッセージを送信し、応答を取得
+            // 【ここが重要】Apple の LLM にメッセージを送信し、応答を取得
+            // session.respond(to:) は非同期処理で、await を使って完了を待ちます
+            // セッション内で会話履歴が保持されるため、マルチターン対話が可能です
             let response = try await session.respond(to: userMessage)
             return response
         } catch {
@@ -61,6 +98,9 @@ class LLMChatService: ObservableObject {
     }
     
     /// セッションをリセット（会話履歴をクリア）
+    ///
+    /// 新しい会話を始めたい場合に呼び出します。
+    /// セッションを破棄して再初期化することで、会話履歴がクリアされます。
     func resetSession() {
         session = nil
         try? initializeSession()
@@ -68,11 +108,18 @@ class LLMChatService: ObservableObject {
 }
 
 /// LLM関連のエラー定義
+///
+/// Foundation Models 使用時に発生する可能性のあるエラーを定義します。
+/// LocalizedError に準拠することで、ユーザーフレンドリーなエラーメッセージを提供できます。
 enum LLMError: LocalizedError {
+    /// モデルが利用できない（デバイス非対応、OS バージョン不足など）
     case modelUnavailable
+    /// セッションの初期化に失敗
     case sessionNotInitialized
+    /// 応答取得中のエラー
     case responseError(String)
     
+    /// ユーザーに表示するエラーメッセージ
     var errorDescription: String? {
         switch self {
         case .modelUnavailable:
