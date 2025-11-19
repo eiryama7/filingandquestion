@@ -2,7 +2,7 @@
 
 このプロジェクトは、Apple の Foundation Models フレームワークを使用したシンプルなチャットボットアプリケーションのサンプル実装です。
 
-> 📚 **ドキュメント**: [セットアップガイド](SETUP.md) | [クイックリファレンス](QUICKREF.md)
+> 📚 **ドキュメント**: [セットアップガイド](SETUP.md) | [クイックリファレンス](QUICKREF.md) | [安全チェック緩和機能ガイド](SAFETY_OVERRIDE_GUIDE.md)
 
 ## 概要
 
@@ -213,6 +213,9 @@ Apple Intelligence は実機専用の機能です。対応デバイスで実行�
 
 - 📘 [README（このファイル）](README.md) - プロジェクト概要と基本情報
 - 📗 [セットアップガイド（SETUP.md）](SETUP.md) - 詳細なセットアップ手順とトラブルシューティング
+- 📙 [クイックリファレンス（QUICKREF.md）](QUICKREF.md) - コードスニペットとカスタマイズ方法
+- 📕 [安全チェック緩和機能ガイド（SAFETY_OVERRIDE_GUIDE.md）](SAFETY_OVERRIDE_GUIDE.md) - safetyOverride 機能の詳細と使い方
+
 - 📙 [クイックリファレンス（QUICKREF.md）](QUICKREF.md) - コードスニペットとカスタマイズ方法
 
 ## ライセンス
