@@ -9,6 +9,18 @@
 import Foundation
 import FoundationModels
 
+/// LLM応答のメタデータを含む構造体
+struct LLMResponse {
+    /// 応答テキスト
+    let text: String
+    /// 応答時間（秒）
+    let responseTime: Double
+    /// 出力トークン数（推定値）
+    let outputTokens: Int
+    /// 1秒あたりのトークン生成速度
+    let tokensPerSecond: Double
+}
+
 /// LLMとの通信を管理するサービスクラス
 /// 
 /// このクラスの主な役割:
@@ -73,11 +85,12 @@ class LLMChatService: ObservableObject {
     /// 1. セッションが初期化されていなければ初期化
     /// 2. session.respond(to:) を呼び出してモデルからの応答を取得
     /// 3. セッションは会話履歴を自動的に管理するため、文脈を理解した応答が得られます
+    /// 4. 応答時間とトークン数を計測してメタデータとして返します
     ///
     /// - Parameter userMessage: ユーザーからのメッセージテキスト
-    /// - Returns: モデルからの応答テキスト
+    /// - Returns: 応答テキストとメタデータを含むLLMResponse
     /// - Throws: セッションエラーまたは応答エラー
-    func sendMessage(_ userMessage: String) async throws -> String {
+    func sendMessage(_ userMessage: String) async throws -> LLMResponse {
         // セッションが存在しない場合は初期化
         guard let session = session else {
             try initializeSession()
@@ -86,12 +99,34 @@ class LLMChatService: ObservableObject {
             }
         }
         
+        // 送信時刻を記録
+        let startTime = Date()
+        
         do {
             // 【ここが重要】Apple の LLM にメッセージを送信し、応答を取得
             // session.respond(to:) は非同期処理で、await を使って完了を待ちます
             // セッション内で会話履歴が保持されるため、マルチターン対話が可能です
             let response = try await session.respond(to: userMessage)
-            return response
+            
+            // 応答受信時刻を記録
+            let endTime = Date()
+            let responseTime = endTime.timeIntervalSince(startTime)
+            
+            // トークン数を推定（文字数ベース）
+            // 注: Foundation Models API がトークン数を返さない場合の概算
+            // 英語: 約4文字/トークン、日本語: 約2文字/トークン
+            // ここでは平均的な値として3文字/トークンで概算
+            let estimatedTokens = max(1, response.count / 3)
+            
+            // 1秒あたりのトークン生成速度を計算
+            let tokensPerSecond = responseTime > 0 ? Double(estimatedTokens) / responseTime : 0
+            
+            return LLMResponse(
+                text: response,
+                responseTime: responseTime,
+                outputTokens: estimatedTokens,
+                tokensPerSecond: tokensPerSecond
+            )
         } catch {
             throw LLMError.responseError(error.localizedDescription)
         }

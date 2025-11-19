@@ -169,6 +169,39 @@ struct MessageBubbleView: View {
                 Text(formattedTime)
                     .font(.caption2)
                     .foregroundColor(.secondary)
+                
+                // メタデータ（アシスタントメッセージのみ）
+                if message.role == .assistant, let responseTime = message.responseTime {
+                    VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 2) {
+                        HStack(spacing: 8) {
+                            // 応答時間
+                            Text(String(format: "Response time: %.2f sec", responseTime))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            
+                            // 出力トークン数
+                            if let outputTokens = message.outputTokens {
+                                Text("•")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                Text("\(outputTokens) tokens")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // トークン生成速度
+                            if let tokensPerSecond = message.tokensPerSecond {
+                                Text("•")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                Text(String(format: "%.1f tokens/sec", tokensPerSecond))
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
             }
             
             // アシスタントメッセージの場合は右側にスペーサーを配置（左寄せ）
