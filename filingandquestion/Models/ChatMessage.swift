@@ -35,16 +35,31 @@ struct ChatMessage: Identifiable, Codable {
     /// メッセージが作成された時刻
     let timestamp: Date
     
+    /// 応答時間（秒）- アシスタントメッセージのみ
+    let responseTime: Double?
+    
+    /// 出力トークン数 - アシスタントメッセージのみ
+    let outputTokens: Int?
+    
+    /// 1秒あたりのトークン生成速度 - アシスタントメッセージのみ
+    let tokensPerSecond: Double?
+    
     /// イニシャライザ
     /// - Parameters:
     ///   - id: メッセージID（デフォルトで新規UUID生成）
     ///   - role: メッセージの役割
     ///   - text: メッセージテキスト
     ///   - timestamp: タイムスタンプ（デフォルトで現在時刻）
-    init(id: UUID = UUID(), role: MessageRole, text: String, timestamp: Date = Date()) {
+    ///   - responseTime: 応答時間（秒）
+    ///   - outputTokens: 出力トークン数
+    ///   - tokensPerSecond: 1秒あたりのトークン生成速度
+    init(id: UUID = UUID(), role: MessageRole, text: String, timestamp: Date = Date(), responseTime: Double? = nil, outputTokens: Int? = nil, tokensPerSecond: Double? = nil) {
         self.id = id
         self.role = role
         self.text = text
         self.timestamp = timestamp
+        self.responseTime = responseTime
+        self.outputTokens = outputTokens
+        self.tokensPerSecond = tokensPerSecond
     }
 }

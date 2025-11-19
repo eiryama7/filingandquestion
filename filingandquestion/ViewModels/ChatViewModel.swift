@@ -96,10 +96,16 @@ class ChatViewModel: ObservableObject {
             do {
                 // LLM サービスを使って応答を取得
                 // await により、応答が返ってくるまで待機
-                let responseText = try await llmService.sendMessage(userMessageText)
+                let llmResponse = try await llmService.sendMessage(userMessageText)
                 
-                // AI の応答をチャット履歴に追加
-                let assistantMessage = ChatMessage(role: .assistant, text: responseText)
+                // AI の応答をチャット履歴に追加（メタデータ付き）
+                let assistantMessage = ChatMessage(
+                    role: .assistant,
+                    text: llmResponse.text,
+                    responseTime: llmResponse.responseTime,
+                    outputTokens: llmResponse.outputTokens,
+                    tokensPerSecond: llmResponse.tokensPerSecond
+                )
                 messages.append(assistantMessage)
                 
             } catch {
