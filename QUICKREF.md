@@ -46,11 +46,14 @@ func checkAvailability() -> Bool {
 
 ```swift
 // LLMChatService.swift
-func initializeSession() throws {
+func initializeSession(safetyOverride: Bool = true) throws {
     let model = SystemLanguageModel.default
-    session = try model.makeSession()
+    // safetyOverride を有効にして長文テキストや文学作品にも対応
+    session = try model.makeSession(safetyOverride: safetyOverride)
 }
 ```
+
+**重要**: `safetyOverride` パラメータを `true` に設定することで、長文テキストや文学作品などのコンテンツに対する安全チェックが緩和され、エラーを防ぐことができます。
 
 ### メッセージの送信
 
