@@ -86,7 +86,12 @@ class LLMChatService: ObservableObject {
         // - makeSession(safety: .allow)
         //
         // 実際の API に合わせて、以下のコードを適切な形式に調整してください
-        session = try model.makeSession(safetyOverride: safetyOverride)
+        // Create a session using the available initializer on LanguageModelSession
+        // Map safetyOverride to a permissive safety configuration if available
+        // Use supported initializers only. Some SDKs don't expose a 'safety' parameter.
+        // If a safety override API exists in your SDK (e.g., overrideSafety: or safety:), adapt here.
+        // For now, we fall back to the default initializer to ensure compilation.
+        session = LanguageModelSession(model: model)
     }
     
     /// ユーザーメッセージに対する応答を取得
@@ -117,7 +122,7 @@ class LLMChatService: ObservableObject {
             // 【ここが重要】Apple の LLM にメッセージを送信し、応答を取得
             // session.respond(to:) は非同期処理で、await を使って完了を待ちます
             // セッション内で会話履歴が保持されるため、マルチターン対話が可能です
-            let response: LanguageModelSession.Response<String> = try await activeSession.respond(to: userMessage)
+            let response: LanguageModelSession.Response<String> = try await session.respond(to: userMessage)
             let responseText = response.content
             
             // 応答受信時刻を記録
