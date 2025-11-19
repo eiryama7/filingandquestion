@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Combine
 import FoundationModels
 
 /// LLM応答のメタデータを含む構造体
@@ -45,14 +46,8 @@ class LLMChatService: ObservableObject {
     ///
     /// - Returns: モデルが利用可能な場合は true、それ以外は false
     func checkAvailability() -> Bool {
-        // まず、デバイスが Foundation Models をサポートしているかチェック
-        guard SystemLanguageModel.isSupported else {
-            return false
-        }
-        
         // デフォルトモデルの利用可能性を確認
-        let availability = SystemLanguageModel.default.availability
-        switch availability {
+        switch SystemLanguageModel.default.availability {
         case .available:
             return true
         case .unavailable:
@@ -76,7 +71,7 @@ class LLMChatService: ObservableObject {
         // デフォルトのシステム言語モデルを取得
         let model = SystemLanguageModel.default
         // セッションを作成（会話履歴を管理するため）
-        session = try model.makeSession()
+        session = LanguageModelSession(model: model)
     }
     
     /// ユーザーメッセージに対する応答を取得
@@ -91,12 +86,11 @@ class LLMChatService: ObservableObject {
     /// - Returns: 応答テキストとメタデータを含むLLMResponse
     /// - Throws: セッションエラーまたは応答エラー
     func sendMessage(_ userMessage: String) async throws -> LLMResponse {
-        // セッションが存在しない場合は初期化
-        guard let session = session else {
+        if session == nil {
             try initializeSession()
-            guard let session = session else {
-                throw LLMError.sessionNotInitialized
-            }
+        }
+        guard let activeSession = session else {
+            throw LLMError.sessionNotInitialized
         }
         
         // 送信時刻を記録
@@ -106,7 +100,8 @@ class LLMChatService: ObservableObject {
             // 【ここが重要】Apple の LLM にメッセージを送信し、応答を取得
             // session.respond(to:) は非同期処理で、await を使って完了を待ちます
             // セッション内で会話履歴が保持されるため、マルチターン対話が可能です
-            let response = try await session.respond(to: userMessage)
+            let response: LanguageModelSession.Response<String> = try await activeSession.respond(to: userMessage)
+            let responseText = response.content
             
             // 応答受信時刻を記録
             let endTime = Date()
@@ -116,13 +111,13 @@ class LLMChatService: ObservableObject {
             // 注: Foundation Models API がトークン数を返さない場合の概算
             // 英語: 約4文字/トークン、日本語: 約2文字/トークン
             // ここでは平均的な値として3文字/トークンで概算
-            let estimatedTokens = max(1, response.count / 3)
+            let estimatedTokens = max(1, responseText.count / 3)
             
             // 1秒あたりのトークン生成速度を計算
             let tokensPerSecond = responseTime > 0 ? Double(estimatedTokens) / responseTime : 0
             
             return LLMResponse(
-                text: response,
+                text: responseText,
                 responseTime: responseTime,
                 outputTokens: estimatedTokens,
                 tokensPerSecond: tokensPerSecond
@@ -138,7 +133,7 @@ class LLMChatService: ObservableObject {
     /// セッションを破棄して再初期化することで、会話履歴がクリアされます。
     func resetSession() {
         session = nil
-        try? initializeSession()
+        // 呼び出し元は次回sendMessageで再初期化してください
     }
 }
 
@@ -166,3 +161,4 @@ enum LLMError: LocalizedError {
         }
     }
 }
+

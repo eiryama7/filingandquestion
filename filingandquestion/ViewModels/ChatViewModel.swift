@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// チャット画面の状態管理を行うViewModel
 ///
@@ -22,6 +23,7 @@ import SwiftUI
 /// ObservableObject により SwiftUI との自動バインディングを実現
 @MainActor
 class ChatViewModel: ObservableObject {
+    
     /// チャットメッセージの配列
     /// @Published により、変更時に自動的に View が更新されます
     @Published var messages: [ChatMessage] = []
@@ -138,3 +140,4 @@ class ChatViewModel: ObservableObject {
         errorMessage = nil
     }
 }
+
