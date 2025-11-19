@@ -8,7 +8,11 @@
 
 /* Begin PBXFileReference section */
 		B5A10CB72ECCB6B3001EC41A /* filingandquestion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = filingandquestion.app; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
+		40ABA5410E2904192A7AB7D6 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		A822C4F6FAA6539010EFFFDB /* LLMChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMChatService.swift; sourceTree = "<group>"; };
+		EFCE5C167721205FAA89EF2D /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		FC690946FCE7A1339E1DDFBF /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		/* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B5A10CB92ECCB6B3001EC41A /* filingandquestion */ = {
@@ -119,7 +123,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
+			
+				5EE5AAEC09705AA6EC65F008 /* ChatMessage.swift in Sources */,
+				F0D3337575F9D0B0D6E4C52D /* LLMChatService.swift in Sources */,
+				CA806374E00BD5A1C6DEA767 /* ChatViewModel.swift in Sources */,
+				806F93032AA9058FD2386524 /* ChatView.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
@@ -334,4 +342,8 @@
 /* End XCConfigurationList section */
 	};
 	rootObject = B5A10CAF2ECCB6B3001EC41A /* Project object */;
-}
+}		5EE5AAEC09705AA6EC65F008 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40ABA5410E2904192A7AB7D6 /* ChatMessage.swift */; };
+		F0D3337575F9D0B0D6E4C52D /* LLMChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A822C4F6FAA6539010EFFFDB /* LLMChatService.swift */; };
+		CA806374E00BD5A1C6DEA767 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCE5C167721205FAA89EF2D /* ChatViewModel.swift */; };
+		806F93032AA9058FD2386524 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC690946FCE7A1339E1DDFBF /* ChatView.swift */; };
+		
