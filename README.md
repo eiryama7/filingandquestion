@@ -17,6 +17,7 @@ Apple Intelligence の Foundation Models（オンデバイス LLM）を使用し
 - ✅ リアルタイムローディングインジケータ
 - ✅ エラーハンドリングと利用可否チェック
 - ✅ 会話履歴のクリア機能
+- ✅ **安全チェック緩和機能（safetyOverride）** - 長文テキストや文学作品の入力に対応
 
 ## クイックスタート
 
@@ -144,12 +145,15 @@ SystemLanguageModel.isSupported  // デバイスがサポートしているか
 SystemLanguageModel.default.availability  // モデルが利用可能か
 ```
 
-### 2. セッションの初期化
+### 2. セッションの初期化（安全チェック緩和機能付き）
 
 ```swift
 let model = SystemLanguageModel.default
-let session = try model.makeSession()
+// safetyOverride を有効にして、長文テキストや文学作品にも対応
+let session = try model.makeSession(safetyOverride: true)
 ```
+
+`safetyOverride` パラメータを `true` に設定することで、長文テキストや文学作品などのコンテンツに対する安全チェックが緩和され、エラーが発生しにくくなります。これにより、小説の一節や長い引用文などを入力しても正常に処理できます。
 
 ### 3. メッセージの送信と応答取得
 

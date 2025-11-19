@@ -20,6 +20,7 @@ Apple の Foundation Models フレームワークを使用したオンデバイ�
    - LanguageModelSession の初期化と管理
    - マルチターン会話の実装
    - エラーハンドリング
+   - **安全チェック緩和機能（safetyOverride）** - 長文テキストや文学作品の入力に対応
 
 3. **MVVM アーキテクチャ**
    - Model: ChatMessage
@@ -71,13 +72,16 @@ Apple の Foundation Models を使用する主要なコード:
 SystemLanguageModel.isSupported
 SystemLanguageModel.default.availability
 
-// セッション初期化
+// セッション初期化（安全チェック緩和機能付き）
 let model = SystemLanguageModel.default
-session = try model.makeSession()
+// safetyOverride を有効にして長文テキストや文学作品にも対応
+session = try model.makeSession(safetyOverride: true)
 
 // メッセージ送信と応答取得
 let response = try await session.respond(to: userMessage)
 ```
+
+**安全チェック緩和機能**: `safetyOverride` パラメータを使用することで、長文テキストや文学作品などのコンテンツに対する安全チェックが緩和され、エラーが発生しにくくなります。
 
 ### 2. ChatViewModel.swift
 
