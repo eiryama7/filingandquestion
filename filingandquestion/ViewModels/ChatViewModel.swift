@@ -83,45 +83,25 @@ class ChatViewModel: ObservableObject {
         // 入力テキストを保存して、入力欄をクリア
         let userMessageText = currentInput
         currentInput = ""
-        
+
         // ユーザーメッセージをチャット履歴に追加
         let userMessage = ChatMessage(role: .user, text: userMessageText)
         messages.append(userMessage)
-        
+
         // LLM に問い合わせ（非同期タスク）
         Task {
-            // ローディング状態を表示
-            isLoading = true
-            // defer でタスク終了時に必ずローディングを解除
-            defer { isLoading = false }
-            
-            do {
-                // LLM サービスを使って応答を取得
-                // await により、応答が返ってくるまで待機
-                let llmResponse = try await llmService.sendMessage(userMessageText)
-                
-                // AI の応答をチャット履歴に追加（メタデータ付き）
-                let assistantMessage = ChatMessage(
-                    role: .assistant,
-                    text: llmResponse.text,
-                    responseTime: llmResponse.responseTime,
-                    outputTokens: llmResponse.outputTokens,
-                    tokensPerSecond: llmResponse.tokensPerSecond
-                )
-                messages.append(assistantMessage)
-                
-            } catch {
-                // エラー発生時の処理
-                errorMessage = error.localizedDescription
-                showError = true
-                
-                // エラーメッセージもチャットに表示して、ユーザーに視覚的にフィードバック
-                let errorChatMessage = ChatMessage(
-                    role: .assistant,
-                    text: "エラーが発生しました: \(error.localizedDescription)"
-                )
-                messages.append(errorChatMessage)
-            }
+            await generateAssistantResponse(for: userMessageText)
+        }
+    }
+
+    /// 既存のユーザー入力から再生成を行う
+    /// - Parameter message: 再生成元のアシスタントメッセージ
+    func regenerateResponse(for message: ChatMessage) {
+        guard !isLoading else { return }
+        guard message.role == .assistant, let prompt = message.originalPrompt else { return }
+
+        Task {
+            await generateAssistantResponse(for: prompt)
         }
     }
     
@@ -138,6 +118,44 @@ class ChatViewModel: ObservableObject {
     func dismissError() {
         showError = false
         errorMessage = nil
+    }
+
+    /// 共通の応答生成処理
+    /// - Parameter prompt: 送信するユーザープロンプト
+    private func generateAssistantResponse(for prompt: String) async {
+        // ローディング状態を表示
+        isLoading = true
+        // defer でタスク終了時に必ずローディングを解除
+        defer { isLoading = false }
+
+        do {
+            // LLM サービスを使って応答を取得
+            // await により、応答が返ってくるまで待機
+            let llmResponse = try await llmService.sendMessage(prompt)
+
+            // AI の応答をチャット履歴に追加（メタデータ付き）
+            let assistantMessage = ChatMessage(
+                role: .assistant,
+                text: llmResponse.text,
+                responseTime: llmResponse.responseTime,
+                outputTokens: llmResponse.outputTokens,
+                tokensPerSecond: llmResponse.tokensPerSecond,
+                originalPrompt: prompt
+            )
+            messages.append(assistantMessage)
+
+        } catch {
+            // エラー発生時の処理
+            errorMessage = error.localizedDescription
+            showError = true
+
+            // エラーメッセージもチャットに表示して、ユーザーに視覚的にフィードバック
+            let errorChatMessage = ChatMessage(
+                role: .assistant,
+                text: "エラーが発生しました: \(error.localizedDescription)"
+            )
+            messages.append(errorChatMessage)
+        }
     }
 }
 

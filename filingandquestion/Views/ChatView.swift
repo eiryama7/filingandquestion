@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// チャット画面のメインビュー
 ///
@@ -40,8 +41,10 @@ struct ChatView: View {
                         LazyVStack(spacing: 12) {
                             // 各メッセージを表示
                             ForEach(viewModel.messages) { message in
-                                MessageBubbleView(message: message)
-                                    .id(message.id) // スクロール制御用にIDを設定
+                                MessageBubbleView(message: message) { target in
+                                    viewModel.regenerateResponse(for: target)
+                                }
+                                .id(message.id) // スクロール制御用にIDを設定
                             }
                             
                             // AI応答生成中のローディングインジケータ
@@ -149,6 +152,7 @@ struct ChatView: View {
 /// - アシスタント: 左寄せ、グレー背景、黒文字
 struct MessageBubbleView: View {
     let message: ChatMessage
+    let onRegenerate: ((ChatMessage) -> Void)?
     
     var body: some View {
         HStack {
@@ -164,6 +168,27 @@ struct MessageBubbleView: View {
                     .background(backgroundColor)
                     .foregroundColor(textColor)
                     .cornerRadius(16)
+                    .overlay(alignment: .topTrailing) {
+                        if shouldShowRegenerateButton {
+                            Button {
+                                onRegenerate?(message)
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.caption2)
+                                    .padding(6)
+                                    .foregroundColor(.secondary)
+                            }
+                            .background(.thinMaterial, in: Circle())
+                            .padding(4)
+                        }
+                    }
+                    .contextMenu {
+                        if message.role == .assistant {
+                            Button(action: copyToClipboard) {
+                                Label("コピー", systemImage: "doc.on.doc")
+                            }
+                        }
+                    }
                 
                 // タイムスタンプ
                 Text(formattedTime)
@@ -228,6 +253,18 @@ struct MessageBubbleView: View {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: message.timestamp)
+    }
+}
+
+private extension MessageBubbleView {
+    var shouldShowRegenerateButton: Bool {
+        message.role == .assistant && message.originalPrompt != nil && onRegenerate != nil
+    }
+
+    func copyToClipboard() {
+        UIPasteboard.general.string = message.text
+        let feedback = UINotificationFeedbackGenerator()
+        feedback.notificationOccurred(.success)
     }
 }
 
