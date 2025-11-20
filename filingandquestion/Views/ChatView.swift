@@ -21,6 +21,7 @@ import UIKit
 /// - 自動スクロール（最新メッセージまで）
 /// - ローディングインジケータ表示
 /// - エラーアラート表示
+@MainActor
 struct ChatView: View {
     /// ViewModel（チャット状態を管理）
     /// @StateObject により、このビューのライフサイクルで保持されます
@@ -41,9 +42,10 @@ struct ChatView: View {
                         LazyVStack(spacing: 12) {
                             // 各メッセージを表示
                             ForEach(viewModel.messages) { message in
-                                MessageBubbleView(message: message) { target in
-                                    viewModel.regenerateResponse(for: target)
-                                }
+                                MessageBubbleView(
+                                    message: message,
+                                    onRegenerate: handleRegenerate
+                                )
                                 .id(message.id) // スクロール制御用にIDを設定
                             }
                             
@@ -65,7 +67,7 @@ struct ChatView: View {
                         // スクロールプロキシを保存
                         scrollProxy = proxy
                     }
-                    .onChange(of: viewModel.messages.count) { _, _ in
+                    .onChange(of: viewModel.messages.count) { _ in
                         // メッセージが追加されたら自動スクロール
                         scrollToBottom()
                     }
@@ -142,6 +144,12 @@ struct ChatView: View {
                 scrollProxy?.scrollTo(lastMessage.id, anchor: .bottom)
             }
         }
+    }
+
+    /// 再生成ボタン押下時のハンドラー
+    /// - Parameter message: 再生成対象のメッセージ
+    private func handleRegenerate(for message: ChatMessage) {
+        viewModel.regenerateResponse(for: message)
     }
 }
 
