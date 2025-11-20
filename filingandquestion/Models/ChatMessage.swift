@@ -34,15 +34,18 @@ struct ChatMessage: Identifiable, Codable {
     
     /// メッセージが作成された時刻
     let timestamp: Date
-    
+
     /// 応答時間（秒）- アシスタントメッセージのみ
     let responseTime: Double?
     
     /// 出力トークン数 - アシスタントメッセージのみ
     let outputTokens: Int?
-    
+
     /// 1秒あたりのトークン生成速度 - アシスタントメッセージのみ
     let tokensPerSecond: Double?
+
+    /// このメッセージの生成元となったユーザー入力（再生成用）
+    let originalPrompt: String?
     
     /// イニシャライザ
     /// - Parameters:
@@ -53,7 +56,15 @@ struct ChatMessage: Identifiable, Codable {
     ///   - responseTime: 応答時間（秒）
     ///   - outputTokens: 出力トークン数
     ///   - tokensPerSecond: 1秒あたりのトークン生成速度
-    init(id: UUID = UUID(), role: MessageRole, text: String, timestamp: Date = Date(), responseTime: Double? = nil, outputTokens: Int? = nil, tokensPerSecond: Double? = nil) {
+    ///   - originalPrompt: 生成に使用したユーザープロンプト
+    init(id: UUID = UUID(),
+         role: MessageRole,
+         text: String,
+         timestamp: Date = Date(),
+         responseTime: Double? = nil,
+         outputTokens: Int? = nil,
+         tokensPerSecond: Double? = nil,
+         originalPrompt: String? = nil) {
         self.id = id
         self.role = role
         self.text = text
@@ -61,5 +72,6 @@ struct ChatMessage: Identifiable, Codable {
         self.responseTime = responseTime
         self.outputTokens = outputTokens
         self.tokensPerSecond = tokensPerSecond
+        self.originalPrompt = originalPrompt
     }
 }
