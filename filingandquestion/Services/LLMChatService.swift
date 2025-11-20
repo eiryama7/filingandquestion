@@ -37,6 +37,9 @@ class LLMChatService: ObservableObject {
     /// Foundation Models のセッション
     /// このセッションは会話履歴を内部で保持し、マルチターン対話を可能にします
     private var session: LanguageModelSession?
+
+    /// unsafe コンテンツ関連のエラーを検出するためのキーワード
+    private let unsafeKeyword = "unsafe"
     
     /// モデルの利用可能性を確認
     /// 
@@ -68,30 +71,7 @@ class LLMChatService: ObservableObject {
     /// - Parameter safetyOverride: 安全チェックを緩和するかどうか（デフォルト: true）
     /// - Throws: モデルが利用できない場合、LLMError.modelUnavailable をスロー
     func initializeSession(safetyOverride: Bool = true) throws {
-        guard checkAvailability() else {
-            throw LLMError.modelUnavailable
-        }
-        
-        // デフォルトのシステム言語モデルを取得
-        let model = SystemLanguageModel.default
-        
-        // セッションを作成（会話履歴を管理するため）
-        // safetyOverride パラメータで安全チェックを緩和
-        // これにより、長文テキストや文学作品などの入力がエラーにならないようにします
-        //
-        // 注: Foundation Models API の最新版では、以下のいずれかの形式で
-        // safety override を指定できます:
-        // - makeSession(safetyOverride: true)
-        // - makeSession(overrideSafety: true)
-        // - makeSession(safety: .allow)
-        //
-        // 実際の API に合わせて、以下のコードを適切な形式に調整してください
-        // Create a session using the available initializer on LanguageModelSession
-        // Map safetyOverride to a permissive safety configuration if available
-        // Use supported initializers only. Some SDKs don't expose a 'safety' parameter.
-        // If a safety override API exists in your SDK (e.g., overrideSafety: or safety:), adapt here.
-        // For now, we fall back to the default initializer to ensure compilation.
-        session = LanguageModelSession(model: model)
+        session = try makeNewSession(safetyOverride: safetyOverride)
     }
     
     /// ユーザーメッセージに対する応答を取得
@@ -110,7 +90,7 @@ class LLMChatService: ObservableObject {
         if session == nil {
             try initializeSession(safetyOverride: true)
         }
-        
+
         guard let session = session else {
             throw LLMError.sessionNotInitialized
         }
@@ -145,6 +125,9 @@ class LLMChatService: ObservableObject {
                 tokensPerSecond: tokensPerSecond
             )
         } catch {
+            if isUnsafeContentError(error) {
+                resetSession()
+            }
             throw LLMError.responseError(error.localizedDescription)
         }
     }
@@ -155,8 +138,33 @@ class LLMChatService: ObservableObject {
     /// セッションを破棄して再初期化することで、会話履歴がクリアされます。
     /// safetyOverride を有効にして初期化します。
     func resetSession() {
-        session = nil
-        try? initializeSession(safetyOverride: true)
+        do {
+            session = try makeNewSession(safetyOverride: true)
+        } catch {
+            session = nil
+        }
+    }
+
+    /// 新しいセッションを安全に生成
+    ///
+    /// - Parameter safetyOverride: 安全チェックを緩和するかどうか
+    /// - Returns: 初期化された LanguageModelSession
+    private func makeNewSession(safetyOverride: Bool) throws -> LanguageModelSession {
+        guard checkAvailability() else {
+            throw LLMError.modelUnavailable
+        }
+
+        let model = SystemLanguageModel.default
+        return try model.makeSession(safetyOverride: safetyOverride)
+    }
+
+    /// unsafe コンテンツ関連のエラーか判定
+    /// - Parameter error: 捕捉したエラー
+    /// - Returns: unsafe を含む場合は true
+    private func isUnsafeContentError(_ error: Error) -> Bool {
+        error.localizedDescription
+            .lowercased()
+            .contains(unsafeKeyword)
     }
 }
 
